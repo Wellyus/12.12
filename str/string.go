@@ -1,4 +1,4 @@
-package string
+package str
 
 func Str(a, b string) int {
 	s1, s2 := []byte(a), []byte(b)
