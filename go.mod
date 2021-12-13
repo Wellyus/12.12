@@ -1,4 +1,4 @@
-module example.com/hello
+module github.com/Wellyus/12.12
 
 go 1.13
 
