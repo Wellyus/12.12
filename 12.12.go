@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/Wellyus/12.12/str"
+	"github/Wellyus/12.12/web"
 )
 
 func main() {
-	str1, str2 := "this is a test", "this is a tttt"
-	fmt.Println(str.Str(str1, str2))
+	var post = web.Post{
+		Content: "hello from ubuntu",
+		Author:  "Wellyus",
+	}
+	post.Create()
+	post_ := web.Get(0)
+	fmt.Println(post_)
 }
