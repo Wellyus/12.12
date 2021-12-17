@@ -17,7 +17,7 @@ var Db *sql.DB //create a handle for connection of database
 func init() {
 	var err error
 	//connect with database
-	Db, err = sql.Open("postpres", "user=wellyus dbname=wellyus password=ln2.7182818285 sslmode=disable")
+	Db, err = sql.Open("postgres", "user=wellyus dbname=wellyus password=ln2.7182818285 sslmode=disable")
 	if err != nil {
 		panic(err)
 	}

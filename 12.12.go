@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github/Wellyus/12.12/web"
+
+	"github.com/Wellyus/12.12/web"
 )
 
 func main() {
@@ -11,6 +12,9 @@ func main() {
 		Author:  "Wellyus",
 	}
 	post.Create()
-	post_ := web.Get(0)
+	post_, err := web.GetPost(0)
+	if err != nil {
+		fmt.Println("err:", err)
+	}
 	fmt.Println(post_)
 }
