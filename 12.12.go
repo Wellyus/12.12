@@ -1,20 +1,102 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 
-	"github.com/Wellyus/12.12/web"
+	_ "github.com/lib/pq"
 )
 
+type Post struct {
+	Id      int
+	Content string
+	Author  string
+}
+
+var Db *sql.DB //create a handle for connection of database
+
 func main() {
-	var post = web.Post{
-		Content: "hello from ubuntu",
-		Author:  "Wellyus",
-	}
-	post.Create()
-	post_, err := web.GetPost(0)
+	/*
+		var post = Post{
+			Content: "hello from ubutu",
+			Author:  "Wellyus",
+		}
+		post.Create()
+		post_, err := GetPost(1)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(post_)
+	*/
+	var posts []Post
+	posts, err := Posts(10)
 	if err != nil {
-		fmt.Println("err:", err)
+		fmt.Print("error in posts limit 10!")
 	}
-	fmt.Println(post_)
+	for _, value := range posts {
+		fmt.Println(value)
+	}
+}
+
+func init() {
+	var err error
+	//connect with database
+	Db, err = sql.Open("postgres", "dbname=1212")
+	if err != nil {
+		panic(err)
+	}
+}
+
+// create a post accroding to a Post structure
+func (post *Post) Create() (err error) {
+	//sql statement model
+	statement := "insert into posts (content, author) values ($1, $2) returning id"
+	stmt, err := Db.Prepare(statement)
+	if err != nil {
+		return
+	}
+	defer stmt.Close()
+	// query a row
+	err = stmt.QueryRow(post.Content, post.Author).Scan(&post.Id)
+	if err != nil {
+		return
+	}
+	return
+}
+
+//get a post in database according to a post id (int)
+func GetPost(id int) (post Post, err error) {
+	post = Post{}
+	err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
+	return
+}
+
+func (post *Post) Update() (err error) {
+	_, err = Db.Exec("Update posts set content = $2, author = $3  where id = $1", post.Id, post.Content, post.Author)
+	return
+}
+
+func (post *Post) Delete() (err error) {
+	_, err = Db.Exec("delete from posts where id = $1", post.Id)
+	return
+}
+
+func Posts(limit int) (posts []Post, err error) {
+	// return some row up to limit
+	rows, err := Db.Query("select id, content, author from posts limit $1", limit)
+	if err != nil {
+		return
+	}
+	//iterate rows by row
+	for rows.Next() {
+		post := Post{}
+		//write content of Post from database into post Structure
+		err = rows.Scan(&post.Id, &post.Content, &post.Author)
+		if err != nil {
+			return
+		}
+		posts = append(posts, post)
+	}
+	rows.Close()
+	return
 }
