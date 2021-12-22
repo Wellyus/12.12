@@ -2,40 +2,31 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/lib/pq"
 )
 
 type Post struct {
+	Id       int
+	Content  string
+	Author   string
+	Comments []Comment
+}
+
+type Comment struct {
 	Id      int
 	Content string
 	Author  string
+	Post    *Post
 }
 
 var Db *sql.DB //create a handle for connection of database
 
 func main() {
-	/*
-		var post = Post{
-			Content: "hello from ubutu",
-			Author:  "Wellyus",
-		}
-		post.Create()
-		post_, err := GetPost(1)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(post_)
-	*/
-	var posts []Post
-	posts, err := Posts(10)
-	if err != nil {
-		fmt.Print("error in posts limit 10!")
-	}
-	for _, value := range posts {
-		fmt.Println(value)
-	}
+	post, _ := GetPost(3)
+	fmt.Println(post.Comments[1].Author)
 }
 
 func init() {
@@ -47,56 +38,40 @@ func init() {
 	}
 }
 
-// create a post accroding to a Post structure
-func (post *Post) Create() (err error) {
-	//sql statement model
-	statement := "insert into posts (content, author) values ($1, $2) returning id"
-	stmt, err := Db.Prepare(statement)
-	if err != nil {
+//create a comment
+func (comment *Comment) Create() (err error) {
+	if comment.Post == nil {
+		err = errors.New("post not found")
 		return
 	}
-	defer stmt.Close()
-	// query a row
-	err = stmt.QueryRow(post.Content, post.Author).Scan(&post.Id)
-	if err != nil {
-		return
-	}
+	err = Db.QueryRow("insert into comments (content, author, post_id) values ($1, $2, $3) returning id", comment.Content, comment.Author, comment.Post.Id).Scan(&comment.Id)
 	return
 }
 
-//get a post in database according to a post id (int)
+// get a post with its id, content, author and all comments(slice)
 func GetPost(id int) (post Post, err error) {
-	post = Post{}
-	err = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
-	return
-}
+	/*post = Post{}
+	post.Comments = []Comment{}*/
+	_ = Db.QueryRow("select id, content, author from posts where id = $1", id).Scan(&post.Id, &post.Content, &post.Author)
 
-func (post *Post) Update() (err error) {
-	_, err = Db.Exec("Update posts set content = $2, author = $3  where id = $1", post.Id, post.Content, post.Author)
-	return
-}
-
-func (post *Post) Delete() (err error) {
-	_, err = Db.Exec("delete from posts where id = $1", post.Id)
-	return
-}
-
-func Posts(limit int) (posts []Post, err error) {
-	// return some row up to limit
-	rows, err := Db.Query("select id, content, author from posts limit $1", limit)
+	rows, err := Db.Query("select id, content, author from comments")
 	if err != nil {
 		return
 	}
-	//iterate rows by row
 	for rows.Next() {
-		post := Post{}
-		//write content of Post from database into post Structure
-		err = rows.Scan(&post.Id, &post.Content, &post.Author)
+		comment := Comment{Post: &post}
+		err = rows.Scan(&comment.Id, &comment.Content, &comment.Author)
 		if err != nil {
 			return
 		}
-		posts = append(posts, post)
+		post.Comments = append(post.Comments, comment)
 	}
 	rows.Close()
+	return
+}
+
+// create a post accroding to a Post structure
+func (post *Post) Create() (err error) {
+	err = Db.QueryRow("insert into posts (content, author) values ($1, $2) returning id", post.Content, post.Author).Scan(&post.Id)
 	return
 }

@@ -1,0 +1,20 @@
+{
+        "id": 1,
+        "content": "hello ubuntu",
+        "author": {
+                "id": 2,
+                "name": "wellyus"
+        },
+        "commnets": [
+                {
+                        "id": 3,
+                        "content": "have a nice day",
+                        "author": "mike"
+                },
+                {
+                        "id": 4,
+                        "content": "how dare you",
+                        "author": "coco"
+                }
+        ]
+}
