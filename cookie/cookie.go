@@ -16,6 +16,7 @@ func cookie() {
 	http.HandleFunc("/show_message", showMessage)
 	server.ListenAndServe()
 }
+
 func set_Cookie(w http.ResponseWriter, r *http.Request) {
 	cookie1 := http.Cookie{
 		Name:     "first_cookie",
